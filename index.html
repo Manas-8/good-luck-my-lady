@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>For You! 💖</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #fff0f5;
+      color: #333;
+      text-align: center;
+      padding: 50px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    h1 {
+      color: #d63384;
+      font-size: 2.5rem;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    button {
+      background-color: #d63384;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 30px;
+      font-size: 1.1rem;
+      margin: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    button:hover {
+      background-color: #ad296a;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+
+    .message {
+      margin: 30px auto;
+      padding: 20px;
+      max-width: 500px;
+      font-size: 1.2rem;
+      display: none;
+      cursor: pointer;
+      background-color: #fff9fb;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .thought-bubble {
+      position: absolute;
+      top: 20px;
+      left: 220px;
+      background-color: #fff3f8;
+      border: 2px solid #d63384;
+      border-radius: 15px;
+      padding: 15px;
+      width: 220px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      font-style: italic;
+      font-size: 0.95rem;
+      display: none;
+      cursor: pointer;
+    }
+
+    .change-btn {
+      background-color: #999;
+      margin-top: 10px;
+      font-size: 0.8rem;
+    }
+
+    /* Floating Hearts */
+    .heart {
+      position: fixed;
+      width: 20px;
+      height: 20px;
+      background-color: #ff69b4;
+      transform: rotate(45deg);
+      animation: float 4s ease-in infinite;
+      opacity: 0.7;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .heart::before,
+    .heart::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background-color: #ff69b4;
+      border-radius: 50%;
+    }
+
+    .heart::before {
+      top: -10px;
+      left: 0;
+    }
+
+    .heart::after {
+      left: -10px;
+      top: 0;
+    }
+
+    @keyframes float {
+      0% { bottom: -10%; transform: translateX(0) rotate(45deg); opacity: 1; }
+      100% { bottom: 110%; transform: translateX(100px) rotate(45deg); opacity: 0; }
+    }
+
+    /* Hug Elements */
+    #hugCounter {
+      margin: 20px;
+      font-size: 1.3em;
+      color: #d63384;
+      font-weight: bold;
+    }
+
+    .hug-heart {
+      position: absolute;
+      font-size: 30px;
+      animation: float-up 1.5s ease-out forwards;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    @keyframes float-up {
+      0% { transform: translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateY(-150px) scale(1.8); opacity: 0; }
+    }
+
+    /* Confetti */
+    .confetti {
+      position: fixed;
+      width: 12px;
+      height: 12px;
+      animation: confetti-fall 3s linear forwards;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    @keyframes confetti-fall {
+      0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Hey Beautiful! 💖</h1>
+  <p>I know things have been tough lately. Here's some love just for you!</p>
+
+  <!-- Main Buttons -->
+  <button onclick="toggleGift()">Gift from Zhongli</button>
+  <button onclick="toggleZhongli()">Hear Zhongli</button>
+  <button onclick="sendHug()">SEND HUG! 🤗</button>
+  <div id="hugCounter">Hugs today: <span id="hugCount">0</span></div>
+
+  <!-- Messages -->
+  <div class="message" id="luckMessage" onclick="toggleGift()">
+    "Though the world may seem heavy with burdens, know that you are not alone. Just as the mountains endure the wind and rain, so too will you rise with strength and grace. I am here, and I believe in you."
+  </div>
+
+  <!-- Zhongli Section -->
+  <div id="zhongliContainer" style="display: none; position: relative; margin: 30px auto;">
+    <img src="bk8t903388tb1.png" alt="Zhongli" style="max-width: 300px; border-radius: 10px;" onclick="toggleBubble()">
+    <div id="zhongliBubble" class="thought-bubble" onclick="toggleBubble()">
+      <span id="zhongliText"></span><br>
+      <button class="change-btn" onclick="event.stopPropagation(); changeLine()">Change Line</button>
+    </div>
+  </div>
+
+  <script>
+    // Zhongli Quotes
+    const lines = [
+      "Contracts must be honored.",
+      "I will have order.",
+      "Osmanthus wine tastes the same as I remember, but where are those who share the memory?",
+      "This is order.",
+      "Rex Lapis has returned.",
+      "A new contract? Okay. I'm still on leave, but I can accompany you for a while.",
+      "Balance must be maintained, and yet destinies remain variable.",
+      "We live in an era of change, as the old order departs and the new is born."
+    ];
+    let currentLine = 0;
+    let isBubbleVisible = false;
+    let isGiftVisible = false;
+    let hugCount = 0;
+
+    // Zhongli Functions
+    function toggleGift() {
+      const msg = document.getElementById('luckMessage');
+      isGiftVisible = !isGiftVisible;
+      msg.style.display = isGiftVisible ? 'block' : 'none';
+      if (isGiftVisible) createConfetti();
+    }
+
+    function toggleZhongli() {
+      const container = document.getElementById('zhongliContainer');
+      container.style.display = container.style.display === 'none' ? 'block' : 'none';
+      if (container.style.display === 'block') {
+        showBubble();
+        createConfetti();
+      } else {
+        isBubbleVisible = false;
+        document.getElementById('zhongliBubble').style.display = 'none';
+      }
+    }
+
+    function toggleBubble() {
+      const bubble = document.getElementById('zhongliBubble');
+      isBubbleVisible = !isBubbleVisible;
+      bubble.style.display = isBubbleVisible ? 'block' : 'none';
+    }
+
+    function showBubble() {
+      const bubble = document.getElementById('zhongliBubble');
+      const text = document.getElementById('zhongliText');
+      currentLine = Math.floor(Math.random() * lines.length);
+      text.innerText = lines[currentLine];
+      bubble.style.display = 'block';
+      isBubbleVisible = true;
+    }
+
+    function changeLine() {
+      currentLine = (currentLine + 1) % lines.length;
+      document.getElementById('zhongliText').innerText = lines[currentLine];
+    }
+
+    // Hug Functions
+    function sendHug() {
+      // Update counter
+      hugCount++;
+      document.getElementById('hugCount').textContent = hugCount;
+      
+      // Create floating hug hearts
+      for (let i = 0; i < 15; i++) {
+        setTimeout(() => {
+          const heart = document.createElement('div');
+          heart.innerHTML = ['💖', '💕', '💗', '💓', '💞'][Math.floor(Math.random() * 5)];
+          heart.classList.add('hug-heart');
+          heart.style.left = Math.random() * window.innerWidth + 'px';
+          heart.style.bottom = '50px';
+          heart.style.animationDuration = (Math.random() * 1 + 1) + 's';
+          document.body.appendChild(heart);
+          
+          // Remove after animation
+          setTimeout(() => heart.remove(), 1500);
+        }, i * 100);
+      }
+      
+      // Create confetti
+      createConfetti();
+      
+      // Play hug sound (uncomment if you add audio)
+      // new Audio('hug-sound.mp3').play();
+    }
+
+    // Confetti Function
+    function createConfetti() {
+      const colors = ['#ff69b4', '#ff1493', '#ff00ff', '#ff6347', '#ffa500', '#ffff00', '#00ff00', '#00ffff', '#1e90ff'];
+      
+      for (let i = 0; i < 50; i++) {
+        setTimeout(() => {
+          const confetti = document.createElement('div');
+          confetti.classList.add('confetti');
+          confetti.style.left = Math.random() * window.innerWidth + 'px';
+          confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+          confetti.style.width = (Math.random() * 10 + 5) + 'px';
+          confetti.style.height = (Math.random() * 10 + 5) + 'px';
+          confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+          document.body.appendChild(confetti);
+          
+          // Remove after animation
+          setTimeout(() => confetti.remove(), 3000);
+        }, i * 30);
+      }
+    }
+
+    // Background Hearts
+    function createBackgroundHearts() {
+      const heart = document.createElement('div');
+      heart.classList.add('heart');
+      heart.style.left = Math.random() * window.innerWidth + 'px';
+      heart.style.bottom = '-20px';
+      heart.style.opacity = Math.random() * 0.5 + 0.3;
+      heart.style.transform = `rotate(45deg) scale(${Math.random() * 0.5 + 0.5})`;
+      document.body.appendChild(heart);
+      
+      // Remove after animation
+      setTimeout(() => heart.remove(), 4000);
+    }
+
+    // Initialize
+    setInterval(createBackgroundHearts, 300);
+    for (let i = 0; i < 10; i++) {
+      setTimeout(createBackgroundHearts, i * 300);
+    }
+  </script>
+</body>
+</html>
